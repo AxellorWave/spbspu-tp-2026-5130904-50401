@@ -117,6 +117,7 @@ std::istream& zharov::operator>>(std::istream& in, UllIO&& dest)
   {
     return in;
   }
+  IOGuard guard(in);
   ull_t a = 0;
   in >> DelimiterIO{{'0'}};
   in >> std::oct >> a;
