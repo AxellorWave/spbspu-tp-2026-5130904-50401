@@ -68,7 +68,18 @@ namespace zharov
 }
 
 int main()
-{}
+{
+  using zharov::DataStruct;
+  std::vector< DataStruct > data;
+  {
+    using iit_t = std::istream_iterator< DataStruct >;
+    std::copy(iit_t{std::cin}, iit_t{}, std::back_inserter(data));
+  }
+  {
+    using oit_t = std::ostream_iterator< DataStruct >;
+    std::copy(std::begin(data), std::end(data), oit_t{std::cout, "\n"});
+  }
+}
 
 zharov::IOGuard::IOGuard(std::basic_ios< char >& s):
   s_(s),
@@ -122,10 +133,10 @@ std::ostream& zharov::operator<<(std::ostream& out, const DataStruct& src)
   }
   IOGuard fmtguard(out);
   out << "(";
-  out << ":\"key1\" 0" << src.key1;
-  out << ":\"key2\" " << ConstCmpIO{src.key2};
-  out << ":\"key3\" " << src.key3;
-  out << ":)";
+  out << ":key1 0" << src.key1;
+  out << ":key2 " << ConstCmpIO{src.key2};
+  out << ":key3 \"" << src.key3;
+  out << "\":)";
   return out;
 }
 
@@ -162,11 +173,11 @@ std::istream& zharov::operator>>(std::istream& in, UllIO&& dest)
   {
     return in;
   }
-  double a = 0, b = 0;
+  double a = 0;
   in >> DelimiterIO{{'0'}};
   in >> a;
   dest.ref = a;
-  return in
+  return in;
 }
 
 std::istream& zharov::operator>>(std::istream& in, CmpIO&& dest)
@@ -190,7 +201,6 @@ std::ostream& zharov::operator<<(std::ostream& out, const ConstCmpIO& dest)
   {
     return out;
   }
-  double a = 0, b = 0;
   out << "#c(";
   out << std::fixed << std::setprecision(1) << dest.ref.real() << ' ' << dest.ref.imag() << ')';
   return out;
@@ -199,10 +209,7 @@ std::ostream& zharov::operator<<(std::ostream& out, const ConstCmpIO& dest)
 bool zharov::operator<(const DataStruct& lhs, const DataStruct& rhs)
 {
   bool f = lhs.key1 < rhs.key1;
-  if (!f)
-  {
-    f = f || std::abs(lhs.key2) < std::abs(rhs.key2);
-  }
+  f = f || std::abs(lhs.key2) < std::abs(rhs.key2);
   f = f || lhs.key3.length() < rhs.key3.length();
   return f;
 }
