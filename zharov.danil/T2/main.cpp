@@ -6,6 +6,7 @@
 #include <complex>
 #include <iomanip>
 #include <iterator>
+#include <limits>
 #include <sstream>
 
 namespace zharov
@@ -80,8 +81,17 @@ int main()
   using zharov::DataStruct;
   std::vector< DataStruct > data;
   {
-    using iit_t = std::istream_iterator< DataStruct >;
-    std::copy(iit_t{std::cin}, iit_t{}, std::back_inserter(data));
+    while (!std::cin.eof())
+    {
+      using iit_t = std::istream_iterator< DataStruct >;
+      std::copy(iit_t{std::cin}, iit_t{}, std::back_inserter(data));
+      if (std::cin.fail())
+      {
+        std::cin.clear();
+        std::streamsize max = std::numeric_limits< std::streamsize >::max();
+        std::cin.ignore(max, '\n');
+      }
+    }
   }
   std::sort(data.begin(), data.end(), std::less< DataStruct >{});
   {
@@ -167,7 +177,7 @@ std::ostream& zharov::operator<<(std::ostream& out, const DataStruct& src)
   }
   IOGuard fmtguard(out);
   out << "(";
-  out << ":key1 0" << src.key1;
+  out << ":key1 0" << std::oct << src.key1;
   out << ":key2 " << ConstCmpIO{src.key2};
   out << ":key3 \"" << src.key3;
   out << "\":)";
@@ -207,9 +217,9 @@ std::istream& zharov::operator>>(std::istream& in, UllIO&& dest)
   {
     return in;
   }
-  double a = 0;
+  ull_t a = 0;
   in >> DelimiterIO{{'0'}};
-  in >> a;
+  in >> std::oct >> a;
   dest.ref = a;
   return in;
 }
