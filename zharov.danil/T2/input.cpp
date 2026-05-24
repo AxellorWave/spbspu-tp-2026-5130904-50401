@@ -75,7 +75,7 @@ std::ostream& zharov::operator<<(std::ostream& out, const DataStruct& src)
   {
     return out;
   }
-  IOGuard fmtguard(out);
+  IOGuard guard(out);
   out << "(";
   out << ":key1 0" << std::oct << src.key1;
   out << ":key2 " << ConstCmpIO{src.key2};
