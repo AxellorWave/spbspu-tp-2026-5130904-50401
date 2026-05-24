@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -57,7 +58,14 @@ namespace zharov
     std::string& ref;
   };
 
+  struct KeyIO
+  {
+    std::string key;
+    DataStruct& dest;
+  };
+
   std::istream& operator>>(std::istream& in, DelimiterIO&& dest);
+  std::istream& operator>>(std::istream& in, KeyIO&& dest);
   std::istream& operator>>(std::istream& in, UllIO&& dest);
   std::istream& operator>>(std::istream& in, CmpIO&& dest);
   std::ostream& operator<<(std::ostream& out, const ConstCmpIO& dest);
@@ -75,6 +83,7 @@ int main()
     using iit_t = std::istream_iterator< DataStruct >;
     std::copy(iit_t{std::cin}, iit_t{}, std::back_inserter(data));
   }
+  std::sort(data.begin(), data.end(), std::less< DataStruct >{});
   {
     using oit_t = std::ostream_iterator< DataStruct >;
     std::copy(std::begin(data), std::end(data), oit_t{std::cout, "\n"});
@@ -107,19 +116,44 @@ std::istream& zharov::operator>>(std::istream& in, DataStruct& dest)
   DataStruct input;
   {
     using sep = DelimiterIO;
-    using ull = UllIO;
-    using cmp = CmpIO;
-    using str = StringIO;
     std::string key1, key2, key3;
     in >> sep{'('};
-    in >> sep{':'} >> key1 >> ull{input.key1};
-    in >> sep{':'} >> key2 >> cmp{input.key2};
-    in >> sep{':'} >> key3 >> str{input.key3};
+    in >> sep{':'} >> key1 >> KeyIO{key1, input};
+    in >> sep{':'} >> key2 >> KeyIO{key2, input};
+    in >> sep{':'} >> key3 >> KeyIO{key3, input};
     in >> sep{':'} >> sep{')'};
   }
   if (in)
   {
     dest = input;
+  }
+  return in;
+}
+
+std::istream& zharov::operator>>(std::istream& in, KeyIO&& dest)
+{
+  std::istream::sentry sentry(in);
+  if (!sentry)
+  {
+    return in;
+  }
+  using ull = UllIO;
+  using cmp = CmpIO;
+  using str = StringIO;
+  switch (dest.key[3])
+  {
+  case '1':
+    in >> ull{dest.dest.key1};
+    break;
+  case '2':
+    in >> cmp{dest.dest.key2};
+    break;
+  case '3':
+    in >> str{dest.dest.key3};
+    break;
+  default:
+    in.setstate(std::ios_base::failbit);
+    break;
   }
   return in;
 }
