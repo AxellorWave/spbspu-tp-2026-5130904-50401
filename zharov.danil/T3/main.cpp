@@ -9,6 +9,39 @@
 #include "commands.hpp"
 #include "polygon.hpp"
 
+namespace
+{
+  using cmd_t = std::function< void(std::istream&, std::ostream&) >;
+
+  void runCommands(std::unordered_map< std::string, cmd_t >& cmds)
+  {
+    std::string cmd;
+    if (!(std::cin >> cmd))
+    {
+      return;
+    }
+    auto it = cmds.find(cmd);
+    if (it == cmds.end())
+    {
+      std::cout << "<INVALID COMMAND>\n";
+      std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+    }
+    else
+    {
+      try
+      {
+        it->second(std::cin, std::cout);
+      }
+      catch (...)
+      {
+        std::cout << "<INVALID COMMAND>\n";
+        std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+      }
+    }
+    runCommands(cmds);
+  }
+}
+
 int main(int argc, char* argv[])
 {
   if (argc != 2)
@@ -29,7 +62,6 @@ int main(int argc, char* argv[])
     polygons.erase(
       std::remove_if(polygons.begin(), polygons.end(), zharov::isInvalid), polygons.end());
   }
-  using cmd_t = std::function< void(std::istream&, std::ostream&) >;
   std::unordered_map< std::string, cmd_t > cmds;
   {
     using namespace std::placeholders;
@@ -40,26 +72,5 @@ int main(int argc, char* argv[])
     cmds["RECTS"] = std::bind(zharov::handleRects, _1, _2, std::cref(polygons));
     cmds["RIGHTSHAPES"] = std::bind(zharov::handleRightShapes, _1, _2, std::cref(polygons));
   }
-  std::string cmd;
-  while (std::cin >> cmd)
-  {
-    auto it = cmds.find(cmd);
-    if (it == cmds.end())
-    {
-      std::cout << "<INVALID COMMAND>\n";
-      std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-    }
-    else
-    {
-      try
-      {
-        it->second(std::cin, std::cout);
-      }
-      catch (const std::exception&)
-      {
-        std::cout << "<INVALID COMMAND>\n";
-        std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-      }
-    }
-  }
+  runCommands(cmds);
 }
