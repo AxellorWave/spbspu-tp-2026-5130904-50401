@@ -174,8 +174,33 @@ void zharov::handleMin(std::istream& in, std::ostream& out, const data_t& data)
   }
 }
 
-void zharov::handleCount(std::istream&, std::ostream&, const data_t&)
-{}
+void zharov::handleCount(std::istream& in, std::ostream& out, const data_t& data)
+{
+  std::string sub;
+  in >> sub;
+  if (!in)
+  {
+    throw std::invalid_argument("");
+  }
+  if (sub == "EVEN")
+  {
+    out << std::count_if(data.begin(), data.end(), isEven) << '\n';
+  }
+  else if (sub == "ODD")
+  {
+    out << std::count_if(data.begin(), data.end(), isOdd) << '\n';
+  }
+  else
+  {
+    size_t n = std::stoull(sub);
+    if (n < 3)
+    {
+      throw std::invalid_argument("");
+    }
+    using namespace std::placeholders;
+    out << std::count_if(data.begin(), data.end(), std::bind(hasExpN, _1, n)) << '\n';
+  }
+}
 
 void zharov::handleRects(std::istream&, std::ostream&, const data_t&)
 {}
