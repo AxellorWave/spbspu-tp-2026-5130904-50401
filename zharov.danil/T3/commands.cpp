@@ -64,6 +64,16 @@ namespace
   {
     return p.points.size() == n;
   }
+
+  bool lessArea(const zharov::Polygon& a, const zharov::Polygon& b)
+  {
+    return getArea(a) < getArea(b);
+  }
+
+  bool lessVertexes(const zharov::Polygon& a, const zharov::Polygon& b)
+  {
+    return a.points.size() < b.points.size();
+  }
 }
 
 void zharov::handleArea(std::istream& in, std::ostream& out, const data_t& data)
@@ -108,11 +118,61 @@ void zharov::handleArea(std::istream& in, std::ostream& out, const data_t& data)
   }
 }
 
-void zharov::handleMax(std::istream&, std::ostream&, const data_t&)
-{}
+void zharov::handleMax(std::istream& in, std::ostream& out, const data_t& data)
+{
+  if (data.empty())
+  {
+    throw std::invalid_argument("");
+  }
+  std::string sub;
+  in >> sub;
+  if (!in)
+  {
+    throw std::invalid_argument("");
+  }
+  if (sub == "AREA")
+  {
+    IOGuard guard(out);
+    out << std::fixed << std::setprecision(1);
+    out << getArea(*std::max_element(data.begin(), data.end(), lessArea)) << '\n';
+  }
+  else if (sub == "VERTEXES")
+  {
+    out << std::max_element(data.begin(), data.end(), lessVertexes)->points.size() << '\n';
+  }
+  else
+  {
+    throw std::invalid_argument("");
+  }
+}
 
-void zharov::handleMin(std::istream&, std::ostream&, const data_t&)
-{}
+void zharov::handleMin(std::istream& in, std::ostream& out, const data_t& data)
+{
+  if (data.empty())
+  {
+    throw std::invalid_argument("");
+  }
+  std::string sub;
+  in >> sub;
+  if (!in)
+  {
+    throw std::invalid_argument("");
+  }
+  if (sub == "AREA")
+  {
+    IOGuard guard(out);
+    out << std::fixed << std::setprecision(1);
+    out << getArea(*std::min_element(data.begin(), data.end(), lessArea)) << '\n';
+  }
+  else if (sub == "VERTEXES")
+  {
+    out << std::min_element(data.begin(), data.end(), lessVertexes)->points.size() << '\n';
+  }
+  else
+  {
+    throw std::invalid_argument("");
+  }
+}
 
 void zharov::handleCount(std::istream&, std::ostream&, const data_t&)
 {}
