@@ -1,4 +1,5 @@
 #include "polygon.hpp"
+#include <algorithm>
 #include <iterator>
 
 std::istream& zharov::operator>>(std::istream& in, DelimiterIO&& dest)
