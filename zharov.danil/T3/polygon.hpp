@@ -1,8 +1,8 @@
 #ifndef POLYGON_HPP
 #define POLYGON_HPP
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
 namespace zharov
 {
@@ -24,6 +24,7 @@ namespace zharov
   std::istream& operator>>(std::istream&, DelimiterIO&&);
   std::istream& operator>>(std::istream&, Point&);
   std::istream& operator>>(std::istream&, Polygon&);
+  bool isInvalid(const Polygon&);
 }
 
 #endif

@@ -1,6 +1,32 @@
 #include "polygon.hpp"
-#include <algorithm>
-#include <iterator>
+#include <limits>
+
+namespace
+{
+  void skipSpaces(std::istream& in)
+  {
+    if (in && (in.peek() == ' '))
+    {
+      in.get();
+      skipSpaces(in);
+    }
+  }
+
+  void readPoints(std::istream& in, std::vector< zharov::Point >& pts, size_t n)
+  {
+    if (n == 0 || !in)
+    {
+      return;
+    }
+    zharov::Point pt;
+    in >> pt;
+    if (in)
+    {
+      pts.push_back(pt);
+      readPoints(in, pts, n - 1);
+    }
+  }
+}
 
 std::istream& zharov::operator>>(std::istream& in, DelimiterIO&& dest)
 {
@@ -20,9 +46,15 @@ std::istream& zharov::operator>>(std::istream& in, DelimiterIO&& dest)
 
 std::istream& zharov::operator>>(std::istream& in, Point& pt)
 {
-  std::istream::sentry sentry(in);
+  skipSpaces(in);
+  std::istream::sentry sentry(in, true);
   if (!sentry)
   {
+    return in;
+  }
+  if (in.peek() == '\n')
+  {
+    in.setstate(std::ios::failbit);
     return in;
   }
   using d = DelimiterIO;
@@ -37,19 +69,41 @@ std::istream& zharov::operator>>(std::istream& in, Polygon& poly)
   {
     return in;
   }
+  const std::streamsize max = std::numeric_limits< std::streamsize >::max();
   size_t n = 0;
   in >> n;
-  if (!in || n < 3)
+  if (!in)
   {
-    in.setstate(std::ios::failbit);
+    if (!in.eof())
+    {
+      in.clear();
+      in.ignore(max, '\n');
+    }
     return in;
   }
-  std::vector< Point > pts(n);
-  using iit_t = std::istream_iterator< Point >;
-  std::copy_n(iit_t{in}, n, pts.begin());
-  if (in)
+  if (n < 3)
   {
-    poly.points = std::move(pts);
+    in.ignore(max, '\n');
+    return in;
   }
+  std::vector< Point > pts;
+  pts.reserve(n);
+  readPoints(in, pts, n);
+  if (pts.size() != n)
+  {
+    if (!in.eof())
+    {
+      in.clear();
+      in.ignore(max, '\n');
+    }
+    return in;
+  }
+  poly.points = std::move(pts);
+  in.ignore(max, '\n');
   return in;
+}
+
+bool zharov::isInvalid(const Polygon& p)
+{
+  return p.points.empty();
 }
