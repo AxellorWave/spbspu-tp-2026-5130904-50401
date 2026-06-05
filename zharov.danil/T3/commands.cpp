@@ -35,7 +35,7 @@ namespace
 
   double getArea(const zharov::Polygon& poly)
   {
-    const auto& pts = poly.points;
+    const std::vector< zharov::Point >& pts = poly.points;
     std::vector< double > areas(pts.size() - 2);
     using namespace std::placeholders;
     std::transform(pts.begin() + 1, pts.end() - 1, pts.begin() + 2, areas.begin(),
@@ -73,6 +73,43 @@ namespace
   bool lessVertexes(const zharov::Polygon& a, const zharov::Polygon& b)
   {
     return a.points.size() < b.points.size();
+  }
+
+  struct Vec
+  {
+    int dx, dy;
+  };
+
+  Vec makeEdge(const zharov::Point& a, const zharov::Point& b)
+  {
+    return {b.x - a.x, b.y - a.y};
+  }
+
+  bool isRightAngle(const Vec& u, const Vec& v)
+  {
+    return u.dx * v.dx + u.dy * v.dy == 0;
+  }
+
+  bool hasRightAngle(const zharov::Polygon& p)
+  {
+    const auto& pts = p.points;
+    std::vector< Vec > edges(pts.size() - 1);
+    std::transform(pts.begin(), pts.end() - 1, pts.begin() + 1, edges.begin(), makeEdge);
+    edges.push_back(makeEdge(pts.back(), pts.front()));
+    bool found = std::adjacent_find(edges.begin(), edges.end(), isRightAngle) != edges.end();
+    return found || isRightAngle(edges.back(), edges.front());
+  }
+
+  bool isRect(const zharov::Polygon& p)
+  {
+    if (p.points.size() != 4)
+    {
+      return false;
+    }
+    const std::vector< zharov::Point >& v = p.points;
+    return isRightAngle(makeEdge(v[3], v[0]), makeEdge(v[0], v[1])) &&
+      isRightAngle(makeEdge(v[0], v[1]), makeEdge(v[1], v[2])) &&
+      isRightAngle(makeEdge(v[1], v[2]), makeEdge(v[2], v[3]));
   }
 }
 
@@ -202,8 +239,12 @@ void zharov::handleCount(std::istream& in, std::ostream& out, const data_t& data
   }
 }
 
-void zharov::handleRects(std::istream&, std::ostream&, const data_t&)
-{}
+void zharov::handleRects(std::istream&, std::ostream& out, const data_t& data)
+{
+  out << std::count_if(data.begin(), data.end(), isRect) << '\n';
+}
 
-void zharov::handleRightShapes(std::istream&, std::ostream&, const data_t&)
-{}
+void zharov::handleRightShapes(std::istream&, std::ostream& out, const data_t& data)
+{
+  out << std::count_if(data.begin(), data.end(), hasRightAngle) << '\n';
+}

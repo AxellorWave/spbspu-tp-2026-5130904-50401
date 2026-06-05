@@ -64,6 +64,7 @@ std::istream& zharov::operator>>(std::istream& in, Point& pt)
 
 std::istream& zharov::operator>>(std::istream& in, Polygon& poly)
 {
+  poly.points.clear();
   std::istream::sentry sentry(in);
   if (!sentry)
   {
@@ -96,6 +97,12 @@ std::istream& zharov::operator>>(std::istream& in, Polygon& poly)
       in.clear();
       in.ignore(max, '\n');
     }
+    return in;
+  }
+  skipSpaces(in);
+  if (in.peek() != '\n' && in.peek() != std::char_traits< char >::eof())
+  {
+    in.ignore(max, '\n');
     return in;
   }
   poly.points = std::move(pts);
