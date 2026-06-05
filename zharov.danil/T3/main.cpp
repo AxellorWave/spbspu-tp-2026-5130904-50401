@@ -20,23 +20,14 @@ namespace
     {
       return;
     }
-    auto it = cmds.find(cmd);
-    if (it == cmds.end())
+    try
+    {
+      cmds.at(cmd)(std::cin, std::cout);
+    }
+    catch (...)
     {
       std::cout << "<INVALID COMMAND>\n";
       std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-    }
-    else
-    {
-      try
-      {
-        it->second(std::cin, std::cout);
-      }
-      catch (...)
-      {
-        std::cout << "<INVALID COMMAND>\n";
-        std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-      }
     }
     runCommands(cmds);
   }
